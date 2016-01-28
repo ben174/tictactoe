@@ -3,6 +3,12 @@ import unittest
 from board import Board
 
 class TestBoard(unittest.TestCase):
+    def test_sequences(self):
+        print 'Test Sequences'
+        board = Board.create_test_board()
+        for line in board.get_sequences():
+            print line
+
     def test_diags(self):
         board = Board.create_test_board()
         diags = Board.get_diags(board)

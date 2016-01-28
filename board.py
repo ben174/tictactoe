@@ -23,6 +23,29 @@ class Board(object):
             rtl.append(self.grid[i][-(i+1)])
         return (ltr, rtl)
 
+    def get_sequences(self):
+        """
+        Returns a tuple of ((x, y), value) for all valid sequences
+        (left to right, top to bottom, diagonal ltr, diagonal rtl)
+        """
+        # rows
+        for row_num, row in enumerate(self.grid):
+            yield [((i, row_num), cell) for i, cell in enumerate(row)]
+        # cols
+        for col_num, col in enumerate(self.get_cols()):
+            yield [((col_num, i), cell) for i, cell in enumerate(col)]
+        # diags
+        yield (
+            ((0, 0), self.grid[0][0]),
+            ((1, 1), self.grid[1][1]),
+            ((2, 2), self.grid[2][2]),
+        )
+        yield (
+            ((0, 2), self.grid[0][2]),
+            ((1, 1), self.grid[1][1]),
+            ((2, 0), self.grid[2][0]),
+        )
+
     def __repr__(self):
         ret = ""
         for row in self.grid:
@@ -72,13 +95,19 @@ class Board(object):
         '''
         threat_rows = []
         threat_col_nums = []
+        cols = self.get_cols()
         for row in self.grid:
             if 1 in row and 2 not in row:
                 threat_rows.append(row)
-        for col_num, col in enumerate(self.get_cols()):
+        for col_num, col in enumerate(cols):
             if 1 in col and 2 not in col:
                 threat_col_nums.append(col_num)
         if len(threat_rows) + len(threat_col_nums) >= 2:
+            if threat_rows:
+                row = threat_rows[0]
+                row[row.index(0)] = 1
+
+
             pass
 
     @staticmethod
