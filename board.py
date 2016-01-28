@@ -60,6 +60,15 @@ class Board(object):
         1. Win: If the player has two in a row, they can place a third to get
         three in a row.
         '''
+        for sequence in self.get_sequences():
+            print 'sequence'
+            print sequence
+            for xy, val in sequence:
+                x, y = xy
+                print 'cv'
+                print x, y
+                print val
+
         for row in self.grid:
             if 2 not in row and row.count(1) == 2:
                 row[row.index(0)] = 1
@@ -125,6 +134,11 @@ class Board(object):
                 row.append(j + (i * 3))
             cols.append(row)
         return Board(cols)
+
+class Sequence(object):
+    def __init__(self):
+        self.cells = []
+        self.coords = []
 
 if __name__ == '__main__':
     main()
