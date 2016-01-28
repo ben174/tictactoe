@@ -1,60 +1,7 @@
 #!/usr/bin/env python
 
-'''
-From Wikipedia: Tic-Tac-Toe
-https://en.wikipedia.org/wiki/Tic-tac-toe
-
-(hope this isn't cheating)
-
-1. Win: If the player has two in a row, they can place a third to get three
-   in a row.
-
-2. Block: If the opponent has two in a row, the player must play the third
-   themselves to block the opponent.
-
-3. Fork: Create an opportunity where the player has two threats to win (two
-   non-blocked lines of 2).
-
-4. Blocking an opponent's fork:
-
-    - Option 1: The player should create two in a row to force the opponent
-      into defending, as long as it doesn't result in them creating a fork.
-      For example, if "X" has a corner, "O" has the center, and "X" has the
-      opposite corner as well, "O" must not play a corner in order to win.
-      (Playing a corner in this scenario creates a fork for "X" to win.)
-
-    - Option 2: If there is a configuration where the opponent can fork,
-      the player should block that fork.
-
-5. Center: A player marks the center. (If it is the first move of the game,
-   playing on a corner gives "O" more opportunities to make a mistake and
-   may therefore be the better choice; however, it makes no difference between
-   perfect players.)
-
-6. Opposite corner: If the opponent is in the corner, the player plays the
-   opposite corner.
-
-7. Empty corner: The player plays in a corner square.
-
-8. Empty side: The player plays in a middle square on any of the 4 sides.
-
-'''
-
-
 class Board(object):
-    @staticmethod
-    def create_board():
-        return  Board([[0] * 3 for x in xrange(3)])
-
-    @staticmethod
-    def create_test_board():
-        cols = []
-        for i in xrange(3):
-            row = []
-            for j in xrange(3):
-                row.append(j + (i * 3))
-            cols.append(row)
-        return Board(cols)
+    """ Represents a stateless tic-tac-toe board. """
 
     def __init__(self, grid=None):
         if grid:
@@ -76,7 +23,6 @@ class Board(object):
             rtl.append(self.grid[i][-(i+1)])
         return (ltr, rtl)
 
-
     def __repr__(self):
         ret = ""
         for row in self.grid:
@@ -86,11 +32,10 @@ class Board(object):
             ret += '{}\n'.format(col_str)
         return ret
 
-
     def try_win(self):
         '''
-        1. Win: If the player has two in a row, they can place a third to get three
-        in a row.
+        1. Win: If the player has two in a row, they can place a third to get
+        three in a row.
         '''
         for row in self.grid:
             if 2 not in row and row.count(1) == 2:
@@ -105,8 +50,8 @@ class Board(object):
 
     def try_block(self):
         '''
-        2. Block: If the opponent has two in a row, the player must play the third
-        themselves to block the opponent.
+        2. Block: If the opponent has two in a row, the player must play the
+        third themselves to block the opponent.
         '''
         for row in self.grid:
             if 1 not in row and row.count(2) == 2:
@@ -122,8 +67,8 @@ class Board(object):
 
     def try_fork(self):
         '''
-        3. Fork: Create an opportunity where the player has two threats to win (two
-        non-blocked lines of 2).
+        3. Fork: Create an opportunity where the player has two threats to win
+        (two non-blocked lines of 2).
         '''
         threat_rows = []
         threat_col_nums = []
@@ -136,7 +81,21 @@ class Board(object):
         if len(threat_rows) + len(threat_col_nums) >= 2:
             pass
 
+    @staticmethod
+    def create_board():
+        """ Creates an empty board. """
+        return  Board([[0] * 3 for x in xrange(3)])
 
+    @staticmethod
+    def create_test_board():
+        """ Creates an empty board, enumerated with unique numbers. """
+        cols = []
+        for i in xrange(3):
+            row = []
+            for j in xrange(3):
+                row.append(j + (i * 3))
+            cols.append(row)
+        return Board(cols)
 
 if __name__ == '__main__':
     main()
