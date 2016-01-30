@@ -1,7 +1,8 @@
-From Wikipedia: Tic-Tac-Toe
-https://en.wikipedia.org/wiki/Tic-tac-toe
+# Tic-Tac-Toe
+## From Wikipedia: Tic-Tac-Toe
+### https://en.wikipedia.org/wiki/Tic-tac-toe
 
-(hope this isn't cheating)
+/(hope this isn't cheating)/
 
 1. Win: If the player has two in a row, they can place a third to get three
    in a row.

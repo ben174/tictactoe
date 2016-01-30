@@ -201,10 +201,6 @@ class Board(object):
             cols.append(row)
         return Board(cols)
 
-class Sequence(object):
-    def __init__(self):
-        self.cells = []
-        self.coords = []
 
 if __name__ == '__main__':
     main()
