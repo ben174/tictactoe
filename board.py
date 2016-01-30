@@ -7,44 +7,77 @@ class Board(object):
         if grid:
             self.grid = grid
         else:
-            self.grid = Board.create_grid()
+            self.init_grid()
+
+    def get_status(self):
+        """
+        Returns a string representing the status of the game, from the
+        opponent's point of view.
+        """
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            svals = list(set(vals))
+            if len(svals) == 1:
+                if svals[0] == 1:
+                    return 'Lose'
+                if svals[0] == 2:
+                    return 'Win'
+        print self.get_cells()
+        if 0 not in self.get_cells():
+            return 'Draw'
+        return 'Playing'
+
+    def move(self):
+        """
+        Attempts to make a move by iterating through a list of rules.
+        """
+        rules = [
+            self.try_win,
+            self.try_block,
+            self.try_fork,
+            self.try_center,
+            self.try_opposite_corner,
+            self.try_corner,
+            self.try_side,
+            self.try_draw,
+        ]
+        for rule in rules:
+            if rule():
+                return
+        # should never happen
+        raise RuntimeError('No rules resulted in a move!')
 
     def get_cols(self):
-        """ Returns a 3x3 list of cols x rows """
+        """ Returns a 3x3 list of cols X rows """
         return zip(*self.grid)
 
-    def get_diags(self):
-        """ Returns a tuple of diagonal (left-to-right, right-to-left) """
-        ret = []
-        ltr = []
-        rtl = []
-        for i in xrange(3):
-            ltr.append(self.grid[i][i])
-            rtl.append(self.grid[i][-(i+1)])
-        return (ltr, rtl)
+    def get_cells(self):
+        """ Returns a flat list of cells for easy searching. """
+        return sum(self.grid, [])
 
     def get_sequences(self):
         """
-        Returns a tuple of ((x, y), value) for all valid sequences
+        Returns a tuple of (vals, ((x, y)*3)) for all valid sequences
         (left to right, top to bottom, diagonal ltr, diagonal rtl)
+
+        Example:
+        (
+            [0, 0, 1][(0, 0), (0, 1), (0, 2)],
+            [0, 0, 0][(1, 0), (1, 1), (1, 2)],
+            [0, 0, 0][(2, 0), (2, 1), (2, 2)],
+        )
         """
-        # rows
+
         for row_num, row in enumerate(self.grid):
-            yield [((i, row_num), cell) for i, cell in enumerate(row)]
-        # cols
+            yield (row, ((row_num, 0), (row_num, 1), (row_num, 2)))
         for col_num, col in enumerate(self.get_cols()):
-            yield [((col_num, i), cell) for i, cell in enumerate(col)]
-        # diags
-        yield (
-            ((0, 0), self.grid[0][0]),
-            ((1, 1), self.grid[1][1]),
-            ((2, 2), self.grid[2][2]),
-        )
-        yield (
-            ((0, 2), self.grid[0][2]),
-            ((1, 1), self.grid[1][1]),
-            ((2, 0), self.grid[2][0]),
-        )
+            yield (col, ((0, col_num), (1, col_num), (2, col_num)))
+
+        yield ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
+                ((0, 0), (1, 1), (2, 2)))
+
+        yield ((self.grid[0][2], self.grid[1][1], self.grid[2][0]),
+                ((0, 2), (1, 1), (2, 0)))
 
     def __repr__(self):
         ret = ""
@@ -57,69 +90,102 @@ class Board(object):
 
     def try_win(self):
         '''
-        1. Win: If the player has two in a row, they can place a third to get
+        Win: If the player has two in a row, they can place a third to get
         three in a row.
         '''
         for sequence in self.get_sequences():
-            print 'sequence'
-            print sequence
-            for xy, val in sequence:
-                x, y = xy
-                print 'cv'
-                print x, y
-                print val
+            vals, coords = sequence
+            if 2 not in vals and vals.count(1) == 2:
+                x, y = coords[vals.index(0)]
+                self.grid[x][y] = 1
+                return True
 
-        for row in self.grid:
-            if 2 not in row and row.count(1) == 2:
-                row[row.index(0)] = 1
-                return True
-        for col_num, col in enumerate(self.get_cols()):
-            if 2 not in col and col.count(1) == 2:
-                row_num = col.index(0)
-                self.grid[row_num][col_num] = 1
-                return True
-        #TODO diag
 
     def try_block(self):
         '''
-        2. Block: If the opponent has two in a row, the player must play the
+        Block: If the opponent has two in a row, the player must play the
         third themselves to block the opponent.
         '''
-        for row in self.grid:
-            if 1 not in row and row.count(2) == 2:
-                row[row.index(0)] = 1
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            if 1 not in vals and vals.count(2) == 2:
+                x, y = coords[vals.index(0)]
+                self.grid[x][y] = 1
                 return True
-        for col_num, col in enumerate(self.get_cols()):
-            if 1 not in col and col.count(2) == 2:
-                row_num = col.index(0)
-                self.grid[row_num][col_num] = 1
-                return True
-        #for diag in _get_diags(grid):
-        #TODO diag
 
     def try_fork(self):
         '''
-        3. Fork: Create an opportunity where the player has two threats to win
+        Fork: Create an opportunity where the player has two threats to win
         (two non-blocked lines of 2).
         '''
-        threat_rows = []
-        threat_col_nums = []
-        cols = self.get_cols()
-        for row in self.grid:
-            if 1 in row and 2 not in row:
-                threat_rows.append(row)
-        for col_num, col in enumerate(cols):
-            if 1 in col and 2 not in col:
-                threat_col_nums.append(col_num)
-        if len(threat_rows) + len(threat_col_nums) >= 2:
-            if threat_rows:
-                row = threat_rows[0]
-                row[row.index(0)] = 1
+        threat_seqs = []
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            if 1 in vals and 2 not in vals:
+                threat_seqs.append(sequence)
+        if len(threat_seqs) > 1:
+            vals, coords = threat_seqs[0]
+            x, y = coords[vals.index(0)]
+            self.grid[x][y] = 1
+            return True
 
+    def try_center(self):
+        '''
+        Center: A player marks the center.
+        '''
+        if self.grid[1][1] == 0:
+            self.grid[1][1] = 1
+            return True
 
-            pass
+    def try_opposite_corner(self):
+        '''
+        Opposite corner: If the opponent is in the corner, the player plays
+        the opposite corner.
+        '''
+        if self.grid[0][0] == 2 and self.grid[2][2] == 0:
+            self.grid[2][2] = 1
+            return True
+        if self.grid[0][2] == 2 and self.grid[2][0] == 0:
+            self.grid[2][0] = 1
+            return True
+        if self.grid[2][0] == 2 and self.grid[0][2] == 0:
+            self.grid[0][2] = 1
+            return True
+        if self.grid[2][2] == 2 and self.grid[0][0] == 0:
+            self.grid[0][2] = 1
+            return True
 
-    @staticmethod
+    def try_corner(self):
+        '''
+        Empty corner: The player plays in a corner square.
+        '''
+        coords = ((0, 0), (0, 2), (2, 0), (2, 2))
+        for corner in coords:
+            x, y = corner
+            if self.grid[x][y] == 0:
+                self.grid[x][y] = 1
+                return True
+
+    def try_side(self):
+        '''
+        Empty side: The player plays in a middle square on any of the 4
+        sides.
+        '''
+        coords = ((0, 1), (1, 2), (2, 1), (1, 1))
+        for side in coords:
+            x, y = side
+            if self.grid[x][y] == 0:
+                self.grid[x][y] = 1
+                return True
+
+    def try_draw(self):
+        if 0 not in self.get_cells():
+            # game is a draw, fail silently
+            return True
+
+    def init_grid(self):
+        self.grid = [[0] * 3 for x in xrange(3)]
+
     def create_board():
         """ Creates an empty board. """
         return  Board([[0] * 3 for x in xrange(3)])
