@@ -9,24 +9,6 @@ class Board(object):
         else:
             self.init_grid()
 
-    def get_status(self):
-        """
-        Returns a string representing the status of the game, from the
-        opponent's point of view.
-        """
-        for sequence in self.get_sequences():
-            vals, coords = sequence
-            svals = list(set(vals))
-            if len(svals) == 1:
-                if svals[0] == 1:
-                    return 'Lose'
-                if svals[0] == 2:
-                    return 'Win'
-        print self.get_cells()
-        if 0 not in self.get_cells():
-            return 'Draw'
-        return 'Playing'
-
     def move(self):
         """
         Attempts to make a move by iterating through a list of rules.
@@ -67,26 +49,38 @@ class Board(object):
             [0, 0, 0][(2, 0), (2, 1), (2, 2)],
         )
         """
-
+        # rows
         for row_num, row in enumerate(self.grid):
             yield (row, ((row_num, 0), (row_num, 1), (row_num, 2)))
+
+        # columns
         for col_num, col in enumerate(self.get_cols()):
             yield (col, ((0, col_num), (1, col_num), (2, col_num)))
 
+        # diag ltr
         yield ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
                 ((0, 0), (1, 1), (2, 2)))
 
+        # diag rtl
         yield ((self.grid[0][2], self.grid[1][1], self.grid[2][0]),
                 ((0, 2), (1, 1), (2, 0)))
 
-    def __repr__(self):
-        ret = ""
-        for row in self.grid:
-            col_str = ""
-            for col in row:
-                col_str += '{} '.format(col)
-            ret += '{}\n'.format(col_str)
-        return ret
+    def get_status(self):
+        """
+        Returns a string representing the status of the game, from the
+        opponent's point of view.
+        """
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            svals = list(set(vals))
+            if len(svals) == 1:
+                if svals[0] == 1:
+                    return 'Lose'
+                if svals[0] == 2:
+                    return 'Win'
+        if 0 not in self.get_cells():
+            return 'Draw'
+        return 'Playing'
 
     def try_win(self):
         '''
@@ -189,6 +183,15 @@ class Board(object):
     def create_board():
         """ Creates an empty board. """
         return  Board([[0] * 3 for x in xrange(3)])
+
+    def __repr__(self):
+        ret = ""
+        for row in self.grid:
+            col_str = ""
+            for col in row:
+                col_str += '{} '.format(col)
+            ret += '{}\n'.format(col_str)
+        return ret
 
     @staticmethod
     def create_test_board():

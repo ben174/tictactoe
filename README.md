@@ -1,8 +1,4 @@
 # Tic-Tac-Toe
-## From Wikipedia: Tic-Tac-Toe
-### https://en.wikipedia.org/wiki/Tic-tac-toe
-
-
 ## Running:
 
     pip install -r requirements.txt
@@ -11,7 +7,9 @@
 
     browse to: http://localhost:5000
 
-(hope this isn't cheating)
+## From Wikipedia: Tic-Tac-Toe
+https://en.wikipedia.org/wiki/Tic-tac-toe
+
 
 1. Win: If the player has two in a row, they can place a third to get three
    in a row.

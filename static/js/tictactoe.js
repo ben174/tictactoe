@@ -1,21 +1,45 @@
 var ttt = {
   init: function() {
+    ttt.createTable();
     $("td").click(ttt.cellClicked);
   },
-  cellClicked: function() {
-    $(this).addClass("player");
-    ttt.submit();
+
+  createTable: function() {
+    var table = $("<table>");
+    for(var y=0;y<=2;y++) {
+      var row = $("<tr>");
+      for(var x=0;x<=2;x++) {
+        $(row).append($("<td>").addClass("clickable"));
+      }
+      $(table).append(row);
+    }
+    $("#content").append(table);
   },
+
+  cellClicked: function() {
+    if ( ( !$(this).hasClass("clickable") ) || 
+          $(this).hasClass("comp") || 
+          $(this).hasClass("player")) {
+      return false;
+    }
+    $(this).addClass("player");
+
+    // fake some thinking time so the player thinks he has a chance
+    $("td").removeClass("clickable");
+    var thinkTime = Math.floor(Math.random() * 1000);
+    window.setTimeout(ttt.submit, thinkTime);
+  },
+
   submit: function() {
     var board = { board: JSON.stringify(ttt.getBoardData()) };
-    console.log(board);
     $.post('/board', data=board, function(data) {
       ttt.drawBoard(JSON.parse(data));
     });
   },
+
   getBoardData: function() {
     var boardData = [];
-    $("#board tr").each(function() {
+    $("table tr").each(function() {
       var row = [];
       $(this).find("td").each(function() {
         var val = 0;
@@ -30,22 +54,22 @@ var ttt = {
     });
     return boardData;
   },
-  drawBoard: function(data) {
-    console.log(data);
-    if(data.status != "Playing") {
-      window.alert(data.status);
-    }
 
-    $("td").removeClass("player").removeClass("comp");
+  drawBoard: function(data) {
     $("tr").each(function(y, row) {
       $(row).find("td").each(function(x, cell) {
         if(data.board[y][x] == 1) {
           $(cell).addClass("comp");
         } else if(data.board[y][x] == 2) {
           $(cell).addClass("player");
+        } else {
+          $(cell).addClass("clickable");
         }
       });
     });
+    if(data.status != "Playing") {
+      window.alert(data.status);
+    }
   }
 };
 
