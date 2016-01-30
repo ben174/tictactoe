@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 class Board(object):
     """ Represents a stateless tic-tac-toe board. """
 
@@ -59,11 +60,11 @@ class Board(object):
 
         # diag ltr
         yield ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
-                ((0, 0), (1, 1), (2, 2)))
+               ((0, 0), (1, 1), (2, 2)))
 
         # diag rtl
         yield ((self.grid[0][2], self.grid[1][1], self.grid[2][0]),
-                ((0, 2), (1, 1), (2, 0)))
+               ((0, 2), (1, 1), (2, 0)))
 
     def get_status(self):
         """
@@ -83,10 +84,10 @@ class Board(object):
         return 'Playing'
 
     def try_win(self):
-        '''
+        """
         Win: If the player has two in a row, they can place a third to get
         three in a row.
-        '''
+        """
         for sequence in self.get_sequences():
             vals, coords = sequence
             if 2 not in vals and vals.count(1) == 2:
@@ -94,12 +95,11 @@ class Board(object):
                 self.grid[x][y] = 1
                 return True
 
-
     def try_block(self):
-        '''
+        """
         Block: If the opponent has two in a row, the player must play the
         third themselves to block the opponent.
-        '''
+        """
         for sequence in self.get_sequences():
             vals, coords = sequence
             if 1 not in vals and vals.count(2) == 2:
@@ -108,10 +108,10 @@ class Board(object):
                 return True
 
     def try_fork(self):
-        '''
+        """
         Fork: Create an opportunity where the player has two threats to win
         (two non-blocked lines of 2).
-        '''
+        """
         threat_seqs = []
         for sequence in self.get_sequences():
             vals, coords = sequence
@@ -124,18 +124,18 @@ class Board(object):
             return True
 
     def try_center(self):
-        '''
+        """
         Center: A player marks the center.
-        '''
+        """
         if self.grid[1][1] == 0:
             self.grid[1][1] = 1
             return True
 
     def try_opposite_corner(self):
-        '''
+        """
         Opposite corner: If the opponent is in the corner, the player plays
         the opposite corner.
-        '''
+        """
         if self.grid[0][0] == 2 and self.grid[2][2] == 0:
             self.grid[2][2] = 1
             return True
@@ -150,9 +150,9 @@ class Board(object):
             return True
 
     def try_corner(self):
-        '''
+        """
         Empty corner: The player plays in a corner square.
-        '''
+        """
         coords = ((0, 0), (0, 2), (2, 0), (2, 2))
         for corner in coords:
             x, y = corner
@@ -161,10 +161,10 @@ class Board(object):
                 return True
 
     def try_side(self):
-        '''
+        """
         Empty side: The player plays in a middle square on any of the 4
         sides.
-        '''
+        """
         coords = ((0, 1), (1, 2), (2, 1), (1, 1))
         for side in coords:
             x, y = side
@@ -178,11 +178,12 @@ class Board(object):
             return True
 
     def init_grid(self):
-        self.grid = [[0] * 3 for x in xrange(3)]
+        self.grid = [[0] * 3 for _ in xrange(3)]
 
+    @staticmethod
     def create_board():
         """ Creates an empty board. """
-        return  Board([[0] * 3 for x in xrange(3)])
+        return Board([[0] * 3 for _ in xrange(3)])
 
     def __repr__(self):
         ret = ""
@@ -203,7 +204,3 @@ class Board(object):
                 row.append(j + (i * 3))
             cols.append(row)
         return Board(cols)
-
-
-if __name__ == '__main__':
-    main()

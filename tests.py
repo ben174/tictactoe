@@ -68,5 +68,6 @@ class TestBoard(unittest.TestCase):
             (2, 5, 8)
         ]
 
+
 if __name__ == '__main__':
     unittest.main()
