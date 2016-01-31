@@ -2,16 +2,17 @@ table {
     margin: 40px auto !important;
     float: none !important;
     height: 153px;
-
+    box-shadow: 3px 3px 2px #EEE;
 }
 
 td {
-    width: 50px;
-    height: 50px;
-    border: solid 1px #000;
+    width: 100px;
+    height: 100px;
+    border: outset 2px #FFF;
     text-align: center;
-    font-size: 20px;
+    font-size: 50px;
     font-weight: bold;
+    background-color: #F5F5F7;
 }
 
 td.player:after {
@@ -26,6 +27,16 @@ td.clickable {
     cursor: pointer;
 }
 
+h1 {
+    text-align: center;
+    background-color: #CCE;
+    padding: 21px;
+    margin-top: 0px;
+    border-bottom: solid 2px #006;
+}
+
 h3 {
     height: 40px;
+    font-size: 35px;
+    margin-bottom: 24px;
 }

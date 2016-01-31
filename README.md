@@ -42,3 +42,24 @@ https://en.wikipedia.org/wiki/Tic-tac-toe
 7. Empty corner: The player plays in a corner square.
 
 8. Empty side: The player plays in a middle square on any of the 4 sides.
+
+### Notes on my implementation
+
+Decided to make this fun and have it be a server/client implementation. Since
+tic-tac-toe is a stateless game (previous moves have no bearing on the optimal
+next move), we don't have have to hold a move history. It's easily passed
+back and forth from the client to the server.
+
+Of course, in the real world, there are some big problems. I'm trusting the
+client be truthful with what it is sending on each turn.
+
+### Moving forward
+
+There are a couple rules in Wikipedia's algorithm that I didn't fully
+implement. The game remains unbeatable, but if the algorithm it would have
+resulted in less draws.
+
+There could be more error checking in the initializer. To ensure that there
+aren't an uneven number of X's vs O's. Again, trusting the client in this case.
+
+

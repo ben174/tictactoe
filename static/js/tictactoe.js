@@ -71,6 +71,10 @@ var ttt = {
         if (data.status != "Playing") {
             $("h3").text(data.status);
             $("td").removeClass("clickable");
+            if (data.status == 'Win') {
+                // cheater
+                document.location.href="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            };
         }
     }
 };
