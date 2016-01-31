@@ -33,7 +33,7 @@ var ttt = {
 
     submit: function () {
         var board = {board: JSON.stringify(ttt.getBoardData())};
-        $.post('/board', data = board, function (data) {
+        $.post('board', data = board, function (data) {
             ttt.drawBoard(JSON.parse(data));
         });
     },
