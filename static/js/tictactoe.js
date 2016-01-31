@@ -1,27 +1,46 @@
+/*jslint browser: true*/
+/*global  $*/
+"use strict";
 var ttt = {
     init: function () {
-        ttt.createTable();
-        $("td").click(ttt.cellClicked);
-        $("#restart").click(ttt.init);
+        $("#restart").click(ttt.newGame);
+        $("#compFirst").click(ttt.newGame);
+        ttt.newGame();
     },
 
-    createTable: function () {
-        var table = $("table").empty();
+    newGame: function () {
+        var table = $("table").empty(),
+            x = 0,
+            y = 0,
+            row,
+            cell,
+            moves,
+            move;
         $(".line").remove();
         $("h3").removeClass("doslidein").addClass("doslideout");
-        for (var y = 0; y <= 2; y++) {
-            var row = $("<tr>");
-            for (var x = 0; x <= 2; x++) {
-                var cell = $("<td>").attr("data-val", 0).attr("data-col", x);
-                if(y==x) {
+        for (y = 0; y <= 2; y += 1) {
+            row = $("<tr>");
+            for (x = 0; x <= 2; x += 1) {
+                cell = $("<td>").attr("data-val", "0").attr("data-col", x).click(ttt.cellClicked);
+                if (y === x) {
                     $(cell).attr("data-ltr", "1");
                 }
-                if((x==2 && y==0) || (y==1 && x==1) || (y==2 && x==0)) {
+                if ((x === 2 && y === 0) || (y === 1 && x === 1) || (y === 2 && x === 0)) {
                     $(cell).attr("data-rtl", "1");
                 }
                 $(row).append(cell);
             }
             $(table).append(row);
+        }
+        if ($("#compFirst").is(":checked")) {
+            moves = [
+                [1, 1],
+                [1, 3],
+                [3, 1],
+                [3, 3]
+            ];
+            move = moves[Math.floor(Math.random() * 4)];
+            $("table tr:nth-child(" + move[0] + ") td:nth-child(" + move[1] + ")").attr("data-val", "1");
         }
         $(table).removeClass("disabled");
     },
@@ -30,11 +49,10 @@ var ttt = {
         if ($("table").hasClass("disabled")) {
             return false;
         }
-
-        if($(this).attr("data-val") != 0) {
+        if ($(this).attr("data-val") !== "0") {
             return false;
         }
-        $(this).attr("data-val", 2);
+        $(this).attr("data-val", "2");
         // fake some thinking time so the player thinks he has a chance
         $("table").addClass("disabled");
         var thinkTime = Math.floor(Math.random() * 1000);
@@ -43,7 +61,7 @@ var ttt = {
 
     submit: function () {
         var board = {board: JSON.stringify(ttt.getBoardData())};
-        $.post('board', data = board, function (data) {
+        $.post('board', board, function (data) {
             ttt.drawBoard(JSON.parse(data));
         });
     },
@@ -53,7 +71,7 @@ var ttt = {
         $("table tr").each(function () {
             var row = [];
             $(this).find("td").each(function () {
-                row.push(parseInt($(this).attr("data-val")));
+                row.push(parseInt($(this).attr("data-val"), 10));
             });
             boardData.push(row);
         });
@@ -66,52 +84,51 @@ var ttt = {
                 $(cell).attr("data-val", data.board[y][x]);
             });
         });
-        if (data.status != "Playing") {
+        if (data.status !== "Playing") {
             $("h3").removeClass("doslideout").addClass("doslidein").text(data.status);
             $("table").addClass("disabled");
             ttt.computeLine();
-            if (data.status == 'Win') {
+            if (data.status === 'Win') {
                 // sore loser
-                document.location.href="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-            };
+                document.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            }
         } else {
             $("table").removeClass("disabled");
         }
     },
 
-    computeLine: function() {
+    computeLine: function () {
         // wow, making the line took way more effort than i thought :)
-        for(var i=0;i<3;i++) {
-            if($("tr:nth-child(" + i + ") td[data-val='1']").length == 3 ||
-                $("tr:nth-child(" + i + ") td[data-val='2']").length == 3) {
+        var i;
+        for (i = 0; i <= 3; i += 1) {
+            if ($("tr:nth-child(" + i + ") td[data-val='1']").length === 3 ||
+                    $("tr:nth-child(" + i + ") td[data-val='2']").length === 3) {
                 ttt.drawLine("row", i);
             }
-            if($("td[data-col='" + i + "'][data-val='1']").length == 3 ||
-                $("td[data-col='" + i + "'][data-val='2']").length == 3) {
-                ttt.drawLine("col", i+1);
+            if ($("td[data-col='" + i + "'][data-val='1']").length === 3 ||
+                    $("td[data-col='" + i + "'][data-val='2']").length === 3) {
+                ttt.drawLine("col", i + 1);
             }
         }
-        if($("td[data-rtl='1'][data-val='1']").length == 3 ||
-            $("td[data-rtl='1'][data-val='2']").length == 3) {
+        if ($("td[data-rtl='1'][data-val='1']").length === 3 ||
+                $("td[data-rtl='1'][data-val='2']").length === 3) {
             ttt.drawLine("rtl", null);
         }
-        if($("td[data-ltr='1'][data-val='1']").length == 3 ||
-            $("td[data-ltr='1'][data-val='2']").length == 3) {
+        if ($("td[data-ltr='1'][data-val='1']").length === 3 ||
+                $("td[data-ltr='1'][data-val='2']").length === 3) {
             ttt.drawLine("ltr", null);
         }
     },
 
-    drawLine: function(lineType, index) {
-        console.log("Drawing line of type: " + lineType + " at index: " + index);
+    drawLine: function (lineType, index) {
         $(".line").remove();
-        var line = $("<div>").addClass("line");
-        if(lineType == 'row') {
+        if (lineType === 'row') {
             $("table tr:nth-of-type(" + index + ") td:first").append($("<div>").addClass("line hline"));
-        } else if (lineType == 'col') {
+        } else if (lineType === 'col') {
             $("table tr:first td:nth-of-type(" + index + ")").append($("<div>").addClass("line vline"));
-        } else if (lineType == 'ltr') {
+        } else if (lineType === 'ltr') {
             $("table tr:first td:first").append($("<div>").addClass("line ltrline"));
-        } else if (lineType == 'rtl') {
+        } else if (lineType === 'rtl') {
             $("table tr:first td:nth-child(3)").append($("<div>").addClass("line rtlline"));
         }
     }

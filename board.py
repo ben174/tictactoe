@@ -173,9 +173,18 @@ class Board(object):
                 return True
 
     def try_draw(self):
+        cells = self.get_cells()
         if 0 not in self.get_cells():
             # game is a draw, fail silently
             return True
+        elif cells.count(0) == 1:
+            # fill the final cell, resulting in a draw
+            for sequence in self.get_sequences():
+                vals, coords = sequence
+                if 0 in vals:
+                    x, y = coords[vals.index(0)]
+                    self.grid[x][y] = 1
+                    return True
 
     def init_grid(self):
         self.grid = [[0] * 3 for _ in xrange(3)]
@@ -183,7 +192,10 @@ class Board(object):
     @staticmethod
     def create_board():
         """ Creates an empty board. """
-        return Board([[0] * 3 for _ in xrange(3)])
+        empty_board = Board([[0] * 3 for _ in xrange(3)])
+        empty_board[0][0] = 1
+        return
+
 
     def __repr__(self):
         ret = ""

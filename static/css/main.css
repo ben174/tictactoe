@@ -1,3 +1,6 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+}
 table {
     margin: 40px auto !important;
     float: none !important;
@@ -120,8 +123,8 @@ h3 {
 }
 
 h3 {
-    animation-duration: 2s;
-    animation-timing-function: cubic-bezier(0.76, 0.04, 0.33, 1.4);
+    animation-duration: 1.5s;
+    animation-timing-function: cubic-bezier(0.76, 0.04, 0.18, 1.18);
     position: relative;
 }
 
@@ -139,9 +142,11 @@ h3 {
 
 @keyframes slidein {
     0% { opacity: 0; left: -1500px; }
+    25% { opacity: 0  }
     100% { opacity: 1; left: 0px; }
 }
 @keyframes slideout {
     0% { opacity: 1; left: 0px; }
+    25% { opacity: 0  }
     100% { opacity: 0; left: 1500px; }
 }
