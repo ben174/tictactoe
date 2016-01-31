@@ -6,9 +6,9 @@ var ttt = {
     },
 
     createTable: function () {
-        var table = $("table").empty();;
+        var table = $("table").empty();
         $(".line").remove();
-        $("h3").text("");
+        $("h3").removeClass("doslidein").addClass("doslideout");
         for (var y = 0; y <= 2; y++) {
             var row = $("<tr>");
             for (var x = 0; x <= 2; x++) {
@@ -67,7 +67,7 @@ var ttt = {
             });
         });
         if (data.status != "Playing") {
-            $("h3").text(data.status);
+            $("h3").removeClass("doslideout").addClass("doslidein").text(data.status);
             $("table").addClass("disabled");
             ttt.computeLine();
             if (data.status == 'Win') {
