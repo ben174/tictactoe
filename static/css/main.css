@@ -5,6 +5,10 @@ table {
     box-shadow: 3px 3px 2px #EEE;
 }
 
+table.disabled {
+
+}
+
 td {
     width: 100px;
     height: 100px;
@@ -15,16 +19,24 @@ td {
     background-color: #F5F5F7;
 }
 
-td.player:after {
+td[data-val='0']:after {
+    content: '\00a0';
+}
+
+td[data-val='2']:after {
     content: 'X';
 }
 
-td.comp:after {
+td[data-val='1']:after {
     content: 'O';
 }
 
-td.clickable {
+td[data-val='0'] {
     cursor: pointer;
+}
+
+table.disabled td[data-val='0'] {
+    cursor: auto;
 }
 
 h1 {
@@ -39,4 +51,70 @@ h3 {
     height: 40px;
     font-size: 35px;
     margin-bottom: 24px;
+}
+
+
+.line {
+    background-color: rgba(65, 65, 113, 1);
+    animation-duration: 0.5s;
+    animation-timing-function: ease-out;
+    position: absolute;
+    border-radius: 10px;
+    border: solid 3px #F5F5F7;
+
+}
+
+.hline {
+    width: 210px;
+    height: 10px;
+    animation-name: hdraw;
+    margin-top: 30px;
+    margin-left: 45px;
+}
+
+
+.vline {
+    height: 210px;
+    width: 10px;
+    animation-name: vdraw;
+    margin-left: 44px;
+    margin-top: 30px;
+}
+
+.ltrline {
+    height: 300px;
+    width: 10px;
+    animation-name: ltrdraw;
+    transform: rotate(-45deg);
+    margin-left: 155px;
+    margin-top: -15px;
+}
+
+.rtlline {
+    height: 300px;
+    width: 10px;
+    animation-name: rtldraw;
+    transform: rotate(45deg);
+    margin-left: -55px;
+    margin-top: -15px;
+}
+
+@keyframes hdraw {
+    0%   {width: 0px;}
+    100% {width: 210px;}
+}
+
+@keyframes vdraw {
+    0%   {height: 0px;}
+    100% {height: 210px;}
+}
+
+@keyframes ltrdraw {
+    0%   {height: 0px; margin-left: 50px; margin-top: 30px; }
+    100% {height: 300px; margin-left: 155px; margin-top: -15px; }
+}
+
+@keyframes rtldraw {
+    0%   {height: 0px; margin-left: 50px; margin-top: 30px; }
+    100% {height: 300px; margin-left: -55px; margin-top: -15px; }
 }
