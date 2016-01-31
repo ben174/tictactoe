@@ -56,10 +56,8 @@ client be truthful with what it is sending on each turn.
 ### Moving forward
 
 There are a couple rules in Wikipedia's algorithm that I didn't fully
-implement. The game remains unbeatable, but if the algorithm it would have
-resulted in less draws.
+implement. The game remains unbeatable, but if the algorithm was implemented
+in its entirety, it would have resulted in less draws.
 
 There could be more error checking in the initializer. To ensure that there
 aren't an uneven number of X's vs O's. Again, trusting the client in this case.
-
-
