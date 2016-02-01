@@ -18,7 +18,9 @@ def index():
 def board():
     grid = json.loads(request.values['board'])
     board = Board(grid)
-    board.move()
+    status = board.get_status()
+    if status == 'Playing':
+        board.move()
     ret = {'board': board.grid, 'status': board.get_status()}
     return json.dumps(ret)
 

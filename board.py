@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+import copy
+import logging
 
 
 class Board(object):
@@ -8,7 +9,7 @@ class Board(object):
         if grid:
             self.grid = grid
         else:
-            self.init_grid()
+            self.grid = self.get_blank_grid()
 
     def move(self):
         """
@@ -18,6 +19,7 @@ class Board(object):
             self.try_win,
             self.try_block,
             self.try_fork,
+            self.try_block_fork,
             self.try_center,
             self.try_opposite_corner,
             self.try_corner,
@@ -26,6 +28,7 @@ class Board(object):
         ]
         for rule in rules:
             if rule():
+                print "Hit rule: " + rule.__name__
                 return
         # should never happen
         raise RuntimeError('No rules resulted in a move!')
@@ -112,16 +115,92 @@ class Board(object):
         Fork: Create an opportunity where the player has two threats to win
         (two non-blocked lines of 2).
         """
-        threat_seqs = []
+        fork_seqs = []
+        has_threat = False
         for sequence in self.get_sequences():
             vals, coords = sequence
-            if 1 in vals and 2 not in vals:
-                threat_seqs.append(sequence)
-        if len(threat_seqs) > 1:
-            vals, coords = threat_seqs[0]
+            if 2 not in vals:
+                if vals.count(1) == 1:
+                    fork_seqs.append(sequence)
+                elif vals.count(1) > 1:
+                    has_threat = True
+        if has_threat and fork_seqs:
+            vals, coords = fork_seqs[0]
             x, y = coords[vals.index(0)]
             self.grid[x][y] = 1
             return True
+
+
+    def try_block_fork(self):
+        """
+        Block Opponent's Fork:
+
+        Option 1: Create two in a row to force the opponent into defending, as
+        long as it doesn't result in them creating a fork or winning. For
+        example, if "X" has a corner, "O" has the center, and "X" has the opposite
+        corner as well, "O" must not play a corner in order to win. (Playing a
+        corner in this scenario creates a fork for "X" to win.)
+
+        Option 2: If there is a configuration where the opponent can fork, block
+        that fork.
+        """
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            # Create two in a row to force the opponent into defending...
+            for index, val in enumerate(vals):
+                if val == 0:
+                    test_board = Board()
+                    test_board.grid = copy.deepcopy(self.grid)
+                    x, y = coords[index]
+                    test_board.grid[x][y] = 1
+                    # ...as long as it doesn't result in them creating a fork or winning.
+                    if not test_board.opponent_can_fork():
+                        # if "X" has a corner, "O" has the center,
+                        # and "X" has the opposite corner as well,
+                        # "O" must not play a corner in order to win.
+                        # if self.grid[1][1] == 2:
+                        #     # put it somewhere where it blocks two possibilites
+                        #     pass
+                        # if (self.grid[0][0] == 2 and self.grid[2][2] == 2) or \
+                        #     (self.grid[0][2] == 2 and self.grid[2][0] == 2):
+                        #        print 'DANGER ZONE!!!!!!'
+                        #        if x == 1 or y == 1 or (x == 1 and x == 1):
+                        #            self.grid[x][y] = 1
+                        #            return True
+                        self.grid[x][y] = 1
+                        return True
+            #raise RuntimeError("I'm doomed. Player can fork")
+
+    def opponent_can_fork(self):
+        """
+        Determines if the grid is a situation in which a fork can be generated.
+        """
+        trouble_count = 0
+        for sequence in self.get_sequences():
+            vals, coords = sequence
+            if vals.count(1) == 0 and vals.count(2) > 0:
+                trouble_count += 1
+        print 'Opp can fork: ' + str(vals) + ' ' + str(coords)
+        if self.grid[2][0] == 1:
+            print 'This should work!'
+            print self.__repr__()
+        print 'Trouble count: ' + str(trouble_count)
+        print self.__repr__()
+        if self.try_win():
+            print 'Lots of trouble but i can win in one move, look above'
+            print self.__repr__()
+            # top-left middle-right bottom-middle is still broken
+            # UNLESS it's corner corner center
+            if (self.grid[0][0] == 2 and self.grid[2][2] == 2) or \
+                 (self.grid[0][2] == 2 and self.grid[2][0] == 2):
+                if (self.grid[0][0] == 1 or self.grid[2][2] == 1 or \
+                        self.grid[0][2] == 1 and self.grid[2][0] == 1):
+                    if self.grid[1][1] == 1:
+                        print 'NOPE this is that one crazy case'
+                        return True
+            return False
+        return trouble_count >= 2
+
 
     def try_center(self):
         """
@@ -186,25 +265,8 @@ class Board(object):
                     self.grid[x][y] = 1
                     return True
 
-    def init_grid(self):
-        self.grid = [[0] * 3 for _ in xrange(3)]
-
-    @staticmethod
-    def create_board():
-        """ Creates an empty board. """
-        empty_board = Board([[0] * 3 for _ in xrange(3)])
-        empty_board[0][0] = 1
-        return
-
-
-    def __repr__(self):
-        ret = ""
-        for row in self.grid:
-            col_str = ""
-            for col in row:
-                col_str += '{} '.format(col)
-            ret += '{}\n'.format(col_str)
-        return ret
+    def get_blank_grid(self):
+        return [[0] * 3 for _ in xrange(3)]
 
     @staticmethod
     def create_test_board():
@@ -216,3 +278,16 @@ class Board(object):
                 row.append(j + (i * 3))
             cols.append(row)
         return Board(cols)
+
+    def __repr__(self):
+        ret = ""
+        for row in self.grid:
+            col_str = ""
+            for col in row:
+                col_str += '{} '.format(col)
+            ret += '{}\n'.format(col_str)
+            ret.replace('1', 'O')
+            ret.replace('2', 'X')
+            ret.replace('0', ' ')
+        return ret
+

@@ -8,6 +8,8 @@ var ttt = {
         ttt.newGame();
     },
 
+    fakeThinking: false,
+
     newGame: function () {
         var table = $("table").empty(),
             x = 0,
@@ -55,8 +57,12 @@ var ttt = {
         $(this).attr("data-val", "2");
         // fake some thinking time so the player thinks he has a chance
         $("table").addClass("disabled");
-        var thinkTime = Math.floor(Math.random() * 1000);
-        window.setTimeout(ttt.submit, thinkTime);
+        if (ttt.fakeThinking) {
+            var thinkTime = Math.floor(Math.random() * 1000);
+            window.setTimeout(ttt.submit, thinkTime);
+        } else {
+            ttt.submit();
+        }
     },
 
     submit: function () {
@@ -90,7 +96,7 @@ var ttt = {
             ttt.computeLine();
             if (data.status === 'Win') {
                 // sore loser
-                document.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+                //document.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
             }
         } else {
             $("table").removeClass("disabled");
