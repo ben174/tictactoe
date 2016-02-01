@@ -1,7 +1,3 @@
-import copy
-import logging
-
-
 class Board(object):
     """ Represents a stateless tic-tac-toe board. """
 
@@ -9,7 +5,7 @@ class Board(object):
         if grid:
             self.grid = grid
         else:
-            self.grid = self.get_blank_grid()
+            self.grid = [[0] * 3 for _ in xrange(3)]
 
     def move(self):
         """
@@ -41,7 +37,7 @@ class Board(object):
         """ Returns a flat list of cells for easy searching. """
         return sum(self.grid, [])
 
-    def get_sequences(self):
+    def get_sequences(self, omit_cols=False):
         """
         Returns a tuple of (vals, ((x, y)*3)) for all valid sequences
         (left to right, top to bottom, diagonal ltr, diagonal rtl)
@@ -57,9 +53,10 @@ class Board(object):
         for row_num, row in enumerate(self.grid):
             yield (row, ((row_num, 0), (row_num, 1), (row_num, 2)))
 
-        # columns
-        for col_num, col in enumerate(self.get_cols()):
-            yield (col, ((0, col_num), (1, col_num), (2, col_num)))
+        if not omit_cols:
+            # columns
+            for col_num, col in enumerate(self.get_cols()):
+                yield (col, ((0, col_num), (1, col_num), (2, col_num)))
 
         # diag ltr
         yield ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
@@ -118,8 +115,7 @@ class Board(object):
         forks = self.locate_fork(1)
         if forks:
             fork = forks[0]
-            print 'Found a offensive fork at: {}'.format(fork)
-            self.grid[fork[1]][fork[0]] = 1
+            self.grid[fork[0]][fork[1]] = 1
             return True
 
     def try_block_fork(self):
@@ -137,92 +133,23 @@ class Board(object):
         """
         forks = self.locate_fork(2)
         if forks:
-            for sequence in self.get_sequences():
+            for sequence in self.get_sequences(omit_cols=True):
                 vals, coords = sequence
                 if vals.count(0) == 2 and 1 in vals:
                     my_spot = vals.index(1)
                     neighbor_coords = coords[1 if my_spot == 2 else my_spot + 1]
-                    print 'Neighbor coords: {}'.format(neighbor_coords)
                     self.grid[neighbor_coords[0]][neighbor_coords[1]] = 1
                     return True
-
-
 
     def locate_fork(self, player):
         """ Looks through the board, finding fork opportunities. """
         trouble = []
-
-        print 'For each row...'
-        for row_index, row in enumerate(self.grid):
-            print 'If there are two empty slots... (there are {})'.format(row.count(0))
-            # could just use a count here
-            if row.count(0) == 2:
-                for col_index, cell in enumerate(row):
-                    print 'If I am in cell {} already (value: {})'.format(col_index, cell)
-                    if cell == player:
-                        print 'I am indeed, so...'
-                        print
-                        print ' Append a new threat tuple: ((i, (j + 1) % 3))'
-                        print ' Append a new threat tuple: (({}, ({} + 1) % 3))'.format(col_index, row_index)
-                        print ' Append a new threat tuple: ({}, {})'.format(col_index, (row_index + 1) % 3)
-                        print
-                        print ' Append a new threat tuple: ((i, (j + 2) % 3))'
-                        print ' Append a new threat tuple: (({}, ({} + 2) % 3))'.format(col_index, row_index)
-                        print ' Append a new threat tuple: ({}, {})'.format(col_index, (row_index + 2) % 3)
-                        trouble.append((col_index, (row_index + 1) % 3))
-                        trouble.append((col_index, (row_index + 2) % 3))
-                        print 'Trouble is now: {}'.format(trouble)
-
-        print 'After checking rows, threat is now: {}'.format(trouble)
-
-        print 'For each column...'
-        for col_index, col in enumerate(self.get_cols()):
-            # could just use a count here
-            if col.count(0) == 2:
-                for row_index, cell in enumerate(col):
-                    print 'If I am in cell {} already (value: {})'.format(row_index, cell)
-                    if cell == player:
-                        print 'I am indeed, so...'
-                        trouble.append(((row_index + 1) % 3, col_index))
-                        trouble.append(((row_index + 2) % 3, col_index))
-                        print 'Trouble is now: {}'.format(trouble)
-
-
-        print 'After checking cols, trouble is now: {}'.format(trouble)
-
-        # diag ltr
-        ltr = ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
-               ((0, 0), (1, 1), (2, 2)))
-
-        # diag rtl
-        rtl = ((self.grid[0][2], self.grid[1][1], self.grid[2][0]),
-               ((0, 2), (1, 1), (2, 0)))
-
-        cells, coords = ltr
-        if cells[0] == cells[1] and cells[2] == player and cells[1] == 0:
-            trouble.append((0, 0))
-            trouble.append((1, 1))
-        if cells[0] == cells[2] and cells[1] == player and cells[2] == 0:
-            trouble.append((0, 0))
-            trouble.append((2, 2))
-        if cells[1] == cells[2] and cells[0] == player and cells[2] == 0:
-            trouble.append((1, 1))
-            trouble.append((2, 2))
-
-
-        cells, coords = rtl
-        if cells[0] == cells[1] and cells[2] == player and cells[1] == 0:
-            trouble.append((0, 2))
-            trouble.append((1, 1))
-        if cells[0] == cells[2] and cells[1] == player and cells[2] == 0:
-            trouble.append((0, 2))
-            trouble.append((2, 0))
-        if cells[1] == cells[2] and cells[0] == player and cells[2] == 0:
-            trouble.append((1, 1))
-            trouble.append((2, 0))
-
-        print 'After checking diags, trouble is now: {}'.format(trouble)
-        print 'Now just return the dupe trouble!'
+        for sequence in self.get_sequences(omit_cols=(player==1)):
+            vals, coords = sequence
+            if vals.count(0) == 2 and player in vals:
+                my_spot = vals.index(player)
+                new_threats = [c for i, c in enumerate(coords) if i != my_spot]
+                trouble.extend(new_threats)
         return [x for x in trouble if trouble.count(x) > 1]
 
     def try_center(self):
@@ -288,9 +215,6 @@ class Board(object):
                     self.grid[x][y] = 1
                     return True
 
-    def get_blank_grid(self):
-        return [[0] * 3 for _ in xrange(3)]
-
     @staticmethod
     def create_test_board():
         """ Creates an empty board, enumerated with unique numbers. """
@@ -313,4 +237,3 @@ class Board(object):
             ret.replace('2', 'X')
             ret.replace('0', ' ')
         return ret
-

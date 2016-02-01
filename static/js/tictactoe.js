@@ -8,7 +8,7 @@ var ttt = {
         ttt.newGame();
     },
 
-    fakeThinking: false,
+    fakeThinking: true,
 
     newGame: function () {
         var table = $("table").empty(),
@@ -55,9 +55,9 @@ var ttt = {
             return false;
         }
         $(this).attr("data-val", "2");
-        // fake some thinking time so the player thinks he has a chance
         $("table").addClass("disabled");
         if (ttt.fakeThinking) {
+            // simulate some thinking time
             var thinkTime = Math.floor(Math.random() * 1000);
             window.setTimeout(ttt.submit, thinkTime);
         } else {
