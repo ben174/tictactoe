@@ -115,21 +115,12 @@ class Board(object):
         Fork: Create an opportunity where the player has two threats to win
         (two non-blocked lines of 2).
         """
-        fork_seqs = []
-        has_threat = False
-        for sequence in self.get_sequences():
-            vals, coords = sequence
-            if 2 not in vals:
-                if vals.count(1) == 1:
-                    fork_seqs.append(sequence)
-                elif vals.count(1) > 1:
-                    has_threat = True
-        if has_threat and fork_seqs:
-            vals, coords = fork_seqs[0]
-            x, y = coords[vals.index(0)]
-            self.grid[x][y] = 1
+        forks = self.locate_fork(1)
+        if forks:
+            fork = forks[0]
+            print 'Found a offensive fork at: {}'.format(fork)
+            self.grid[fork[1]][fork[0]] = 1
             return True
-
 
     def try_block_fork(self):
         """
@@ -144,63 +135,95 @@ class Board(object):
         Option 2: If there is a configuration where the opponent can fork, block
         that fork.
         """
-        for sequence in self.get_sequences():
-            vals, coords = sequence
-            # Create two in a row to force the opponent into defending...
-            for index, val in enumerate(vals):
-                if val == 0:
-                    test_board = Board()
-                    test_board.grid = copy.deepcopy(self.grid)
-                    x, y = coords[index]
-                    test_board.grid[x][y] = 1
-                    # ...as long as it doesn't result in them creating a fork or winning.
-                    if not test_board.opponent_can_fork():
-                        # if "X" has a corner, "O" has the center,
-                        # and "X" has the opposite corner as well,
-                        # "O" must not play a corner in order to win.
-                        # if self.grid[1][1] == 2:
-                        #     # put it somewhere where it blocks two possibilites
-                        #     pass
-                        # if (self.grid[0][0] == 2 and self.grid[2][2] == 2) or \
-                        #     (self.grid[0][2] == 2 and self.grid[2][0] == 2):
-                        #        print 'DANGER ZONE!!!!!!'
-                        #        if x == 1 or y == 1 or (x == 1 and x == 1):
-                        #            self.grid[x][y] = 1
-                        #            return True
-                        self.grid[x][y] = 1
-                        return True
-            #raise RuntimeError("I'm doomed. Player can fork")
+        forks = self.locate_fork(2)
+        if forks:
+            for sequence in self.get_sequences():
+                vals, coords = sequence
+                if vals.count(0) == 2 and 1 in vals:
+                    my_spot = vals.index(1)
+                    neighbor_coords = coords[1 if my_spot == 2 else my_spot + 1]
+                    print 'Neighbor coords: {}'.format(neighbor_coords)
+                    self.grid[neighbor_coords[0]][neighbor_coords[1]] = 1
+                    return True
 
-    def opponent_can_fork(self):
-        """
-        Determines if the grid is a situation in which a fork can be generated.
-        """
-        trouble_count = 0
-        for sequence in self.get_sequences():
-            vals, coords = sequence
-            if vals.count(1) == 0 and vals.count(2) > 0:
-                trouble_count += 1
-        print 'Opp can fork: ' + str(vals) + ' ' + str(coords)
-        if self.grid[2][0] == 1:
-            print 'This should work!'
-            print self.__repr__()
-        print 'Trouble count: ' + str(trouble_count)
-        print self.__repr__()
-        if self.try_win():
-            print 'Lots of trouble but i can win in one move, look above'
-            print self.__repr__()
-            # top-left middle-right bottom-middle is still broken
-            # UNLESS it's corner corner center
-            if (self.grid[0][0] == 2 and self.grid[2][2] == 2) or \
-                 (self.grid[0][2] == 2 and self.grid[2][0] == 2):
-                if (self.grid[0][0] == 1 or self.grid[2][2] == 1 or \
-                        self.grid[0][2] == 1 and self.grid[2][0] == 1):
-                    if self.grid[1][1] == 1:
-                        print 'NOPE this is that one crazy case'
-                        return True
-            return False
-        return trouble_count >= 2
 
+
+    def locate_fork(self, player):
+        """ Looks through the board, finding fork opportunities. """
+        trouble = []
+
+        print 'For each row...'
+        for row_index, row in enumerate(self.grid):
+            print 'If there are two empty slots... (there are {})'.format(row.count(0))
+            # could just use a count here
+            if row.count(0) == 2:
+                for col_index, cell in enumerate(row):
+                    print 'If I am in cell {} already (value: {})'.format(col_index, cell)
+                    if cell == player:
+                        print 'I am indeed, so...'
+                        print
+                        print ' Append a new threat tuple: ((i, (j + 1) % 3))'
+                        print ' Append a new threat tuple: (({}, ({} + 1) % 3))'.format(col_index, row_index)
+                        print ' Append a new threat tuple: ({}, {})'.format(col_index, (row_index + 1) % 3)
+                        print
+                        print ' Append a new threat tuple: ((i, (j + 2) % 3))'
+                        print ' Append a new threat tuple: (({}, ({} + 2) % 3))'.format(col_index, row_index)
+                        print ' Append a new threat tuple: ({}, {})'.format(col_index, (row_index + 2) % 3)
+                        trouble.append((col_index, (row_index + 1) % 3))
+                        trouble.append((col_index, (row_index + 2) % 3))
+                        print 'Trouble is now: {}'.format(trouble)
+
+        print 'After checking rows, threat is now: {}'.format(trouble)
+
+        print 'For each column...'
+        for col_index, col in enumerate(self.get_cols()):
+            # could just use a count here
+            if col.count(0) == 2:
+                for row_index, cell in enumerate(col):
+                    print 'If I am in cell {} already (value: {})'.format(row_index, cell)
+                    if cell == player:
+                        print 'I am indeed, so...'
+                        trouble.append(((row_index + 1) % 3, col_index))
+                        trouble.append(((row_index + 2) % 3, col_index))
+                        print 'Trouble is now: {}'.format(trouble)
+
+
+        print 'After checking cols, trouble is now: {}'.format(trouble)
+
+        # diag ltr
+        ltr = ((self.grid[0][0], self.grid[1][1], self.grid[2][2]),
+               ((0, 0), (1, 1), (2, 2)))
+
+        # diag rtl
+        rtl = ((self.grid[0][2], self.grid[1][1], self.grid[2][0]),
+               ((0, 2), (1, 1), (2, 0)))
+
+        cells, coords = ltr
+        if cells[0] == cells[1] and cells[2] == player and cells[1] == 0:
+            trouble.append((0, 0))
+            trouble.append((1, 1))
+        if cells[0] == cells[2] and cells[1] == player and cells[2] == 0:
+            trouble.append((0, 0))
+            trouble.append((2, 2))
+        if cells[1] == cells[2] and cells[0] == player and cells[2] == 0:
+            trouble.append((1, 1))
+            trouble.append((2, 2))
+
+
+        cells, coords = rtl
+        if cells[0] == cells[1] and cells[2] == player and cells[1] == 0:
+            trouble.append((0, 2))
+            trouble.append((1, 1))
+        if cells[0] == cells[2] and cells[1] == player and cells[2] == 0:
+            trouble.append((0, 2))
+            trouble.append((2, 0))
+        if cells[1] == cells[2] and cells[0] == player and cells[2] == 0:
+            trouble.append((1, 1))
+            trouble.append((2, 0))
+
+        print 'After checking diags, trouble is now: {}'.format(trouble)
+        print 'Now just return the dupe trouble!'
+        return [x for x in trouble if trouble.count(x) > 1]
 
     def try_center(self):
         """
